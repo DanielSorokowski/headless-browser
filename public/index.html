@@ -1,0 +1,104 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Train Schedule Search</title>
+
+  <style>
+    .header {
+      background:black;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Train Schedule Search</h1>
+  <form id="searchForm">
+    <label for="start">Start Station:</label>
+    <input type="text" id="start" name="start" required>
+
+    <label for="end">End Station:</label>
+    <input type="text" id="end" name="end" required>
+
+    <label for="date">Date:</label>
+    <input type="date" id="date" name="date" required>
+
+    <label for="time">Time:</label>
+    <input type="time" id="time" name="time" required>
+
+    <button type="button" onclick="search()">Search</button>
+  </form>
+
+  <table >
+    <tr class="header">
+      <td>From<td>
+      <td>To<td>
+      <td>Date<td>
+      <td>Start Hour<td>  
+      <td>End Hour<td>
+      <td>Durration<td>
+      <td>inter changes<td>
+    </tr>
+
+    <tbody class="table">
+
+    </tbody>
+  </table>
+
+  <script>
+    async function search() {
+      const start = document.getElementById('start').value;
+      const end = document.getElementById('end').value;
+      const date = document.getElementById('date').value;
+      const time = document.getElementById('time').value;
+      let trips = []
+
+      const table = document.querySelector('.table')
+
+      table.innerHTML = '<td>loading...</td>'
+
+      const originalDate = new Date(date);
+
+
+      const day = originalDate.getDate();
+      const month = originalDate.getMonth() + 1; 
+      const year = originalDate.getFullYear() % 100; 
+
+
+      const formattedDateString = `${day}.${month < 10 ? '0' : ''}${month}.${year < 10 ? '0' : ''}${year}`;
+
+      const response = await fetch('/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `start=${start}&end=${end}&date=${formattedDateString}&time=${time}`,
+      });
+
+      trips = await response.json();
+
+      table.innerHTML = ''
+      
+      trips.forEach(trip => {
+        const tr = document.createElement('tr')
+
+        tr.innerHTML = `
+          <td>${trip.from}<td>
+          <td>${trip.to}<td>
+          <td>${trip.data}<td>
+          <td>${trip.timeStart}<td>  
+          <td>${trip.timeEnd}<td>
+          <td>${trip.totalTime}<td>
+          <td>${trip.interchanges}<td>
+        `
+
+        table.appendChild(tr)
+      })
+
+    }
+  </script>
+</body>
+</html>
